@@ -1,0 +1,563 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pidgin Translator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Figtree:wght@400;500;700&display=swap">
+<style>
+/* Layout: white page with a small flag-stripe mark in the header. English goes in on the left, Pidgin comes out on a solid green panel on the right (stacked on phones). Ten tappable examples sit underneath. The only loud colour is the green output panel. */
+:root {
+  --white: #ffffff;
+  --paper: #f3faf6;
+  --green: #008751;
+  --green-deep: #05452c;
+  --green-soft: #d8f0e2;
+  --ink: #0c2218;
+  --muted: #4b6657;
+  --line: #c9e2d3;
+  --font-display: "Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --font-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+
+body {
+  background: var(--white);
+  color: var(--ink);
+  font: 16px/1.5 var(--font-body);
+  padding-block: 22px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  min-height: 100%;
+}
+
+.wrap { max-width: 760px; margin-inline: auto; display: grid; gap: 24px; }
+h1, h2, p { margin: 0; }
+
+.top { display: grid; gap: 10px; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.flag {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  width: 42px; height: 28px;
+  border: 1.5px solid var(--green);
+  border-radius: 4px; overflow: hidden;
+  flex: none;
+}
+.flag span:nth-child(odd) { background: var(--green); }
+.flag span:nth-child(even) { background: var(--white); }
+.tag { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--green); }
+.top h1 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2rem, 9vw, 3.2rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--green-deep);
+  text-wrap: balance;
+}
+.top p { color: var(--muted); max-width: 46ch; }
+
+.panels { display: grid; gap: 14px; }
+@media (min-width: 680px) { .panels { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+
+.panel { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.panel label.title {
+  font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+}
+
+textarea {
+  font: inherit;
+  width: 100%;
+  min-width: 0;
+  min-height: 11rem;
+  resize: vertical;
+  border-radius: 18px;
+  padding: 16px;
+  line-height: 1.45;
+}
+#english {
+  background: var(--paper);
+  color: var(--ink);
+  border: 2px solid var(--line);
+  font-size: 1.1rem;
+}
+#english::placeholder { color: var(--muted); }
+#english:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; border-color: var(--green); }
+#pidgin {
+  background: var(--green);
+  color: var(--white);
+  border: 2px solid var(--green);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1.35;
+  resize: none;
+}
+#pidgin::placeholder { color: rgba(255, 255, 255, 0.75); }
+#pidgin:focus-visible { outline: 3px solid var(--green-deep); outline-offset: 2px; }
+
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.btn {
+  appearance: none;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-radius: 99px;
+  padding: 9px 18px;
+  cursor: pointer;
+  border: 2px solid var(--green);
+  background: var(--white);
+  color: var(--green-deep);
+}
+.btn:hover { background: var(--green-soft); }
+.btn:focus-visible { outline: 3px solid var(--green-deep); outline-offset: 3px; }
+.btn.solid { background: var(--green-deep); border-color: var(--green-deep); color: var(--white); }
+.btn.solid:hover { background: var(--green); border-color: var(--green); }
+
+.flavour { display: inline-flex; align-items: center; gap: 8px; font-size: 0.95rem; font-weight: 500; cursor: pointer; }
+.flavour input { width: 20px; height: 20px; accent-color: var(--green); margin: 0; }
+.flavour input:focus-visible { outline: 3px solid var(--green-deep); outline-offset: 2px; }
+
+.stat { font-size: 0.88rem; color: var(--muted); }
+
+.examples { display: grid; gap: 12px; }
+.examples h2 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.3rem;
+  letter-spacing: -0.01em;
+  color: var(--green-deep);
+}
+.chips { display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 560px) { .chips { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.chip {
+  appearance: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1.5px solid var(--line);
+  background: var(--white);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.chip:hover { background: var(--green-soft); border-color: var(--green); }
+.chip:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+
+footer { color: var(--muted); font-size: 0.85rem; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="flag" aria-hidden="true"><span></span><span></span><span></span></span>
+      <span class="tag">English to Naija Pidgin</span>
+    </div>
+    <h1>Pidgin Translator</h1>
+    <p>Type English and get playful Naija Pidgin. Words it does not know yet stay as you typed them.</p>
+  </header>
+
+  <section class="panels" aria-label="Translator">
+    <div class="panel">
+      <label class="title" for="english">English</label>
+      <textarea id="english" maxlength="600" placeholder="Type English here, for example: How are you?">Good morning, my friend. How are you? I am hungry, let's go and eat.</textarea>
+      <div class="row">
+        <button class="btn" id="clear" type="button">Clear</button>
+        <label class="flavour" for="flavour"><input id="flavour" type="checkbox" checked> Add Naija flavour (o, jare, sha)</label>
+      </div>
+    </div>
+    <div class="panel" id="outPanel">
+      <label class="title" for="pidgin">Pidgin</label>
+      <textarea id="pidgin" readonly placeholder="Your Pidgin shows here."></textarea>
+      <div class="row">
+        <button class="btn solid" id="copy" type="button">Copy Pidgin</button>
+        <span class="stat" id="stat" aria-live="polite"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="examples" aria-labelledby="ex-title">
+    <h2 id="ex-title">Try these 10 examples</h2>
+    <div class="chips" id="chips"></div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+/* ENGINE START */
+var PHRASES = {
+  'how are you': 'how you dey',
+  'how are you doing': 'how body',
+  'how is it going': 'how far',
+  'what is your name': 'wetin be your name',
+  'what is happening': 'wetin dey happen',
+  'what is wrong': 'wetin happen',
+  'what is up': 'how far',
+  "what's up": 'how far',
+  'what is': 'wetin be',
+  'what are you': 'wetin you dey',
+  'what do you want': 'wetin you want',
+  'what do you mean': 'wetin you mean',
+  'where are you from': 'where you dey come from',
+  'where are you': 'where you dey',
+  'who are you': 'who be you',
+  'are you hungry': 'hunger dey catch you',
+  'are you okay': 'you dey alright',
+  'are you ok': 'you dey alright',
+  'are you serious': 'you dey joke',
+  'are you mad': 'you don craze',
+  'are you': 'you dey',
+  'can you': 'you fit',
+  'can i': 'I fit',
+  'do you have': 'you get',
+  'i am hungry': 'hunger dey catch me',
+  'i am tired': 'tire dey catch me',
+  'i am sleepy': 'sleep dey catch me',
+  'i am thirsty': 'thirst dey catch me',
+  'i am angry': 'I don vex',
+  'i am late': 'I don late',
+  'i am home': 'I don reach house',
+  'i am sorry': 'abeg forgive me',
+  "i'm hungry": 'hunger dey catch me',
+  "i'm tired": 'tire dey catch me',
+  "i'm sleepy": 'sleep dey catch me',
+  "i'm thirsty": 'thirst dey catch me',
+  "i'm angry": 'I don vex',
+  "i'm sorry": 'abeg forgive me',
+  'i am': 'I dey',
+  'you are welcome': 'no wahala',
+  'you are crazy': 'you don mad',
+  'you are': 'you dey',
+  'he is': 'he dey',
+  'she is': 'she dey',
+  'we are': 'we dey',
+  'they are': 'dem dey',
+  'it is fine': 'e dey fine',
+  'it is': 'e dey',
+  'this is': 'na',
+  'that is': 'na',
+  'there is no problem': 'no wahala at all',
+  'there is no light': 'NEPA don take light',
+  'there is': 'e get',
+  'there are': 'e get',
+  'no electricity': 'NEPA don take light',
+  'the power is off': 'light don go',
+  'i love you': 'I love you well well',
+  'i miss you': 'I dey miss you',
+  'i want to': 'I wan',
+  'i want': 'I wan',
+  'i will': 'I go',
+  'you will': 'you go',
+  'he will': 'he go',
+  'she will': 'she go',
+  'we will': 'we go',
+  'they will': 'dem go',
+  'it will': 'e go',
+  'i can': 'I fit',
+  'you can': 'you fit',
+  'thank you very much': 'thank you well well',
+  'thanks a lot': 'thank you well well',
+  'thank you': 'thank you o',
+  'good morning': 'good morning o',
+  'good afternoon': 'good afternoon o',
+  'good evening': 'good evening o',
+  'good night': 'sleep well o',
+  'good luck': 'God go help you',
+  'welcome back': 'welcome back o',
+  'happy birthday': 'happy birthday o',
+  'see you later': 'later o',
+  'no problem': 'no wahala',
+  "don't worry": 'no worry',
+  'do not worry': 'no worry',
+  'wait a minute': 'wait small',
+  'wait a moment': 'wait small',
+  'just a moment': 'wait small',
+  'hold on': 'wait small',
+  'a lot of': 'plenty',
+  'a lot': 'plenty',
+  'very much': 'well well',
+  'very good': 'correct',
+  'very big': 'big well well',
+  'very small': 'small small',
+  'right now': 'now now',
+  "let's go": 'make we go',
+  'let us go': 'make we go',
+  "let's eat": 'make we chop',
+  'let me': 'make I',
+  'come on': 'oya now',
+  'come here': 'come here o',
+  'go away': 'comot for here',
+  'get out': 'comot',
+  'calm down': 'take am easy',
+  'be quiet': 'keep quiet',
+  'shut up': 'close your mouth',
+  'never mind': 'no mind am',
+  'forget it': 'forget am',
+  'leave me alone': 'leave me jare',
+  'my friend': 'my padi',
+  'my friends': 'my padi dem',
+  'my brother': 'my bros',
+  'my sister': 'my sista',
+  'oh my god': 'chai, my God o',
+  'oh my gosh': 'ah ah, see me o',
+  'no way': 'e no possible',
+  'of course': 'of course na',
+  'excuse me': 'abeg',
+  'have to': 'must',
+  'has to': 'must',
+  'need to': 'must',
+  'too much': 'too much',
+  'how much is this': 'how much be this one',
+  'how much is it': 'how much be am'
+};
+
+var WORDS = {
+  'i': 'I', "i'm": 'I dey', "you're": 'you dey', "he's": 'he dey', "she's": 'she dey', "we're": 'we dey',
+  "they're": 'dem dey', "it's": 'e dey', "that's": 'na', "there's": 'e get', "what's": 'wetin be', "let's": 'make we',
+  "i'll": 'I go', "you'll": 'you go', "he'll": 'he go', "she'll": 'she go', "we'll": 'we go', "they'll": 'dem go',
+  "i've": 'I don', "isn't": 'no be', "aren't": 'no dey', "wasn't": 'no been', "haven't": 'never', "hasn't": 'never',
+  "don't": 'no', "doesn't": 'no', "didn't": 'no', "can't": 'no fit', 'cannot': 'no fit', "won't": 'no go',
+  "wouldn't": 'no go', "shouldn't": 'no suppose',
+  'they': 'dem', 'them': 'dem', 'their': 'dem', 'it': 'e',
+  'am': 'dey', 'is': 'dey', 'are': 'dey', 'was': 'been', 'were': 'been', 'been': 'don',
+  'not': 'no', 'can': 'fit', 'could': 'fit', 'will': 'go', 'would': 'go', 'shall': 'go', 'should': 'suppose',
+  'want': 'wan', 'wants': 'wan', 'wanted': 'wan',
+  'have': 'get', 'has': 'get', 'had': 'get',
+  'what': 'wetin', 'this': 'dis', 'that': 'dat', 'these': 'dese', 'those': 'dose',
+  'very': 'too', 'really': 'truly', 'seriously': 'for real', 'now': 'now now', 'always': 'every time',
+  'quickly': 'fast fast', 'quick': 'fast fast', 'slowly': 'small small', 'hurry': 'rush',
+  'many': 'plenty', 'much': 'plenty', 'few': 'small',
+  'friend': 'padi', 'friends': 'padi dem', 'child': 'pikin', 'children': 'pikin dem', 'kids': 'pikin dem',
+  'baby': 'pikin', 'mother': 'mama', 'mom': 'mama', 'mum': 'mama', 'father': 'papa', 'dad': 'papa',
+  'girlfriend': 'babe', 'boss': 'oga', 'sir': 'oga',
+  'food': 'chop', 'eat': 'chop', 'ate': 'chop', 'eaten': 'chop',
+  'car': 'motor', 'vehicle': 'motor', 'traffic': 'go-slow', 'electricity': 'light',
+  'party': 'owambe', 'song': 'jam', 'songs': 'jams', 'walk': 'waka',
+  'talk': 'yarn', 'speak': 'talk', 'say': 'talk', 'story': 'gist', 'gossip': 'gist', 'news': 'gist', 'listen': 'hear',
+  'problem': 'wahala', 'trouble': 'wahala', 'problems': 'wahala',
+  'nice': 'sweet', 'delicious': 'sweet', 'beautiful': 'fine', 'handsome': 'fine', 'pretty': 'fine',
+  'cool': 'correct', 'awesome': 'sweet pass', 'amazing': 'sweet pass', 'excellent': 'correct', 'great': 'correct',
+  'angry': 'vexed', 'upset': 'vexed', 'crazy': 'mad', 'stupid': 'mumu', 'foolish': 'mumu', 'silly': 'mumu', 'fool': 'mumu',
+  'enough': 'e don do', 'finished': 'don finish', 'done': 'don do', 'already': 'don',
+  'leave': 'comot', 'left': 'comot', 'take': 'carry', 'everyone': 'everybody', 'someone': 'somebody',
+  'please': 'abeg', 'sorry': 'sorry o', 'thanks': 'thank you o', 'yes': 'yes o', 'yeah': 'yes o', 'okay': 'ok',
+  'hello': 'hello o', 'hi': 'how far', 'hey': 'oya', 'bye': 'bye bye', 'goodbye': 'I dey go', 'wow': 'ah ah',
+  'welcome': 'welcome o', 'congratulations': 'congrats o', 'oh': 'o',
+  'relax': 'relax o', 'why': 'why', 'which': 'which one',
+  'in': 'for', 'because': 'because'
+};
+
+var ING = {
+  'going': 'go', 'coming': 'come', 'eating': 'chop', 'working': 'work', 'sleeping': 'sleep', 'waiting': 'wait',
+  'walking': 'waka', 'dancing': 'shake body', 'thinking': 'think', 'talking': 'talk', 'running': 'run',
+  'doing': 'do', 'looking': 'look', 'trying': 'try', 'laughing': 'laugh', 'crying': 'cry', 'playing': 'play',
+  'watching': 'watch', 'reading': 'read', 'writing': 'write', 'cooking': 'cook', 'drinking': 'drink',
+  'studying': 'study', 'praying': 'pray', 'singing': 'sing', 'driving': 'drive', 'saying': 'talk',
+  'telling': 'tell', 'happening': 'happen', 'raining': 'rain', 'leaving': 'comot', 'staying': 'stay',
+  'shopping': 'shop', 'selling': 'sell', 'buying': 'buy', 'calling': 'call', 'sitting': 'sit'
+};
+
+var DROP = { 'the': 1, 'a': 1, 'an': 1 };
+var MAXP = 0;
+Object.keys(PHRASES).forEach(function (k) { MAXP = Math.max(MAXP, k.split(' ').length); });
+
+function norm(w) { return w.toLowerCase().replace(/’/g, "'"); }
+function isWord(t) { return /^[A-Za-z]/.test(t); }
+function isUpperFirst(w) { return /^[A-Z]/.test(w); }
+function isAllCaps(w) { return w.length > 1 && w === w.toUpperCase() && /[A-Z]/.test(w); }
+
+function translate(text, flavour) {
+  var toks = text.match(/[A-Za-z]+(?:['’][A-Za-z]+)*|\d+|\r?\n|[ \t]+|[^\sA-Za-z\d]/g) || [];
+  var out = [];
+  var changed = 0, total = 0;
+  var carryCap = false, atStart = true, prevOut = '', sentenceHash = 0, sentenceWords = 0;
+  var ENDS = ['o', 'jare', 'sha'];
+
+  function emit(repl, orig, nWords) {
+    var key = repl.toLowerCase();
+    if (repl === '') {
+      changed += nWords; total += nWords;
+      if (isUpperFirst(orig)) carryCap = true;
+      return;
+    }
+    var cap = carryCap || (isUpperFirst(orig) && (orig !== 'I' || atStart));
+    var res = repl;
+    if (isAllCaps(orig)) res = repl.toUpperCase();
+    else if (cap) res = repl.charAt(0).toUpperCase() + repl.slice(1);
+    carryCap = false;
+    out.push(res);
+    atStart = false;
+    prevOut = key.split(' ').pop();
+    sentenceWords += nWords;
+    for (var c = 0; c < res.length; c++) sentenceHash += res.charCodeAt(c);
+    total += nWords;
+  }
+
+  var i = 0;
+  while (i < toks.length) {
+    var t = toks[i];
+    if (isWord(t)) {
+      var run = [];
+      var k = i;
+      while (k < toks.length && isWord(toks[k]) && run.length < MAXP) {
+        run.push(k);
+        if (k + 2 < toks.length && /^[ \t]+$/.test(toks[k + 1]) && isWord(toks[k + 2])) k += 2; else break;
+      }
+      var matched = null, n = 0;
+      for (var len = run.length; len >= 2; len--) {
+        var key = run.slice(0, len).map(function (idx) { return norm(toks[idx]); }).join(' ');
+        if (Object.prototype.hasOwnProperty.call(PHRASES, key)) { matched = PHRASES[key]; n = len; break; }
+      }
+      if (matched !== null) {
+        var origPhrase = run.slice(0, n).map(function (idx) { return toks[idx]; }).join(' ');
+        if (matched.toLowerCase() !== norm(origPhrase)) changed += n;
+        emit(matched, toks[run[0]], n);
+        i = run[n - 1] + 1;
+        continue;
+      }
+      var lw = norm(t);
+      var repl = t;
+      var did = false;
+      if (Object.prototype.hasOwnProperty.call(ING, lw)) {
+        repl = (prevOut === 'dey') ? ING[lw] : 'dey ' + ING[lw];
+        did = true;
+      } else if (Object.prototype.hasOwnProperty.call(DROP, lw)) {
+        repl = '';
+        did = true;
+      } else if (Object.prototype.hasOwnProperty.call(WORDS, lw)) {
+        repl = WORDS[lw];
+        did = true;
+      }
+      if (did && repl !== '' && repl.toLowerCase() !== lw) changed += 1;
+      if (repl === '') { emit('', t, 1); changed -= 1; }
+      else emit(repl, t, 1);
+      i += 1;
+      continue;
+    }
+    if (/^\s+$/.test(t)) {
+      out.push(/\n/.test(t) ? '\n' : ' ');
+      if (/\n/.test(t)) { atStart = true; prevOut = ''; }
+    } else if (/^\d+$/.test(t)) {
+      out.push(t); atStart = false; prevOut = '';
+    } else {
+      if (flavour && (t === '.' || t === '!') && sentenceWords > 0 && toks[i + 1] !== t && toks[i - 1] !== t) {
+        var soFar = out.join('').replace(/\s+$/, '');
+        if (!/(^|\s)(o|jare|sha|abeg)$/i.test(soFar)) {
+          out.push(' ' + (t === '!' ? 'o' : ENDS[sentenceHash % ENDS.length]));
+        }
+      }
+      out.push(t);
+      prevOut = '';
+      if (/[.!?]/.test(t)) { atStart = true; sentenceHash = 0; sentenceWords = 0; }
+    }
+    i += 1;
+  }
+
+  if (flavour && sentenceWords > 0 && out.length && /[A-Za-z0-9]$/.test(out.join('').replace(/\s+$/, ''))) {
+    var tail = out.join('').replace(/\s+$/, '');
+    if (!/(^|\s)(o|jare|sha|abeg)$/i.test(tail)) out.push(' o');
+  }
+
+  var text2 = out.join('')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/[ \t]+([,.!?;:])/g, '$1')
+    .split('\n').map(function (l) { return l.trim(); }).join('\n')
+    .trim();
+  return { text: text2, changed: Math.max(0, changed), total: total };
+}
+/* ENGINE END */
+
+(function () {
+  var EXAMPLES = [
+    'How are you?',
+    "I am hungry, let's go and eat.",
+    'Good morning, my friend.',
+    'What are you doing?',
+    "I don't have money.",
+    'Thank you very much, my friend!',
+    "Don't worry, there is no problem.",
+    'Are you going to the party tonight?',
+    'The traffic is too much and I am tired.',
+    'My brother, where are you going?'
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function run() {
+    var src = $('english').value;
+    var res = translate(src, $('flavour').checked);
+    $('pidgin').value = res.text;
+    if (!src.trim()) {
+      $('stat').textContent = '';
+    } else if (res.total === 0) {
+      $('stat').textContent = 'Type some words to translate.';
+    } else if (res.changed === 0) {
+      $('stat').textContent = 'No Pidgin found for these words yet. Try an example below.';
+    } else {
+      $('stat').textContent = res.changed + ' of ' + res.total + ' words changed.';
+    }
+  }
+
+  EXAMPLES.forEach(function (ex, idx) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.id = 'ex-' + (idx + 1);
+    b.textContent = ex;
+    b.addEventListener('click', function () {
+      $('english').value = ex;
+      run();
+      var panel = $('outPanel');
+      var r = panel.getBoundingClientRect();
+      if (r.top < 0 || r.bottom > (window.innerHeight || document.documentElement.clientHeight)) {
+        panel.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
+      }
+    });
+    $('chips').appendChild(b);
+  });
+
+  $('english').addEventListener('input', run);
+  $('flavour').addEventListener('change', run);
+  $('clear').addEventListener('click', function () {
+    $('english').value = '';
+    run();
+    $('english').focus();
+  });
+
+  $('copy').addEventListener('click', function () {
+    var btn = $('copy');
+    var area = $('pidgin');
+    var text = area.value;
+    if (!text) { btn.textContent = 'Nothing to copy'; setTimeout(function () { btn.textContent = 'Copy Pidgin'; }, 1500); return; }
+    function done(ok) {
+      btn.textContent = ok ? 'Copied' : 'Select and copy';
+      setTimeout(function () { btn.textContent = 'Copy Pidgin'; }, 1800);
+    }
+    function fallback() {
+      try {
+        area.focus();
+        area.select();
+        area.setSelectionRange(0, text.length);
+        done(document.execCommand('copy'));
+      } catch (err) { done(false); }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done(true); }, fallback);
+    } else {
+      fallback();
+    }
+  });
+
+  var size = Object.keys(PHRASES).length + Object.keys(WORDS).length + Object.keys(ING).length + 3;
+  $('foot').textContent = 'Built-in dictionary: ' + size + ' words and phrases. Made with Claude for the October 2026 Spotlight.';
+
+  run();
+})();
+</script>
+
+</body></html>
